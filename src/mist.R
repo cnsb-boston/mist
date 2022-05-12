@@ -18,12 +18,17 @@ mist.processMatrix <- function(x){
 
 # "normalize" the M3D variable
 mist.getM3D_normalized <- function(x){
+	nz=x[,3]!=0
+	x1=x[nz,]
+	cols=5:ncol(x)
 	# divide cols by their bait length
-	x1 <- x[,5:dim(x)[2]]/x[,3]
+	x1 <- x1[,cols]/x1[,3]
 	# normalize by column (of x)	--	M3D
-	x1 <- scale(x1, center=FALSE, scale=colSums(x[,5:dim(x)[2]]))
+	x1 <- scale(x1, center=FALSE, scale=colSums(x[,cols]))
 	# normalize by column (of x1)	--	M3D normalized
 	x1 <- scale(x1, center=FALSE, scale=colSums(x1))	
+	x[,cols]=0
+	x[nz,cols]=x1
 	return(x1)
 }
 
