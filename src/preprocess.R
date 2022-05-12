@@ -3,6 +3,10 @@ suppressMessages(library(reshape2))
 
 # filter out contaminants
 preprocess.filterContaminants = function(contaminants_file, df, prey_colname) {
+  if(!file.exists(contaminants_file)){
+     cat("\t  No contaminants file... skipping filter\n")
+     return(df)
+  }
 	# read in contaminants file
   contaminants <- read.delim(contaminants_file, header=F, stringsAsFactors=F, sep='\t')
   contaminants <- paste(unlist(contaminants), collapse="|")
@@ -156,7 +160,7 @@ preprocess.createMatrix <- function(y, collapse_file, exclusions_file, remove_fi
   datmat <- datmat[,c(3,1,4,2,5:dim(datmat)[2])]
   
   # handle exclusions
-  if(!is.null(exclusions_file)){
+  if(!is.null(exclusions_file) && file.exists(exclusions_file)){
     if(file.info(exclusions_file)$size>0){
       exclusions <- unique(read.delim(exclusions_file, sep="\t", header=F, stringsAsFactors=FALSE))
       
@@ -218,11 +222,13 @@ preprocess.main <- function(data_file, keys_file, output_file, filter_data, cont
   
   # quality control
   ## TO DO GIT ISSUE #1
-  if(class(df[,3])=="character"){
-    cat("\t!!! CHARACTERS FOUND IN unique_pep COLUMN. CONVERTING TO NUMERIC.\n")
-    df[,3] = as.numeric(df[,3])
+  if(grepl("unique_pep",colnames(df)[3])){
+    if(class(df[,3])=="character"){
+      cat("\t!!! CHARACTERS FOUND IN unique_pep COLUMN. CONVERTING TO NUMERIC.\n")
+      df[,3] = as.numeric(df[,3])
+    }
+    df <- df[which(df[,3] > 0 | is.na(df[,3]) | df[,3] == ""),]   # remove ms_unique_pep <= 0
   }
-	df <- df[which(df[,3] > 0 | is.na(df[,3]) | df[,3] == ""),]   # remove ms_unique_pep <= 0
   df <- preprocess.removeDuplicates(df, id_colname, prey_colname)
   
 	#filter contaminants out
@@ -244,7 +250,7 @@ preprocess.main <- function(data_file, keys_file, output_file, filter_data, cont
       # remove carryover proteins
        tmp = merge(df, data.frame(to_remove[,c(id_colname, prey_colname)], here=1), by=c(id_colname, prey_colname), all.x=TRUE) #get index of carryover proteins
       df <- tmp[which(is.na(tmp$here)),-dim(tmp)[2]]  # remove the 'here' column
-      df <- df[preprocess.orderExperiments(df, id_colname),]
+      df <- df[order(df[,id_colname]),]
       output_file = gsub('.txt','_NoC.txt',output_file)
       write.table(df, output_file, eol="\n", sep="\t", quote=F, row.names=F, col.names=T, na="")
     }
