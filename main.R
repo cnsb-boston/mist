@@ -1,5 +1,31 @@
 #! /usr/bin/Rscript --vanilla
 
+args <- commandArgs(trailingOnly = F) 
+
+# check if libraries are installed
+checkForLibraries <- function(required_libraries, retry=2){
+  if(retry<=0) stop("Can't retry")
+  pkgs = data.frame(installed.packages(), stringsAsFactors=F)
+  #if the packages haven't been installed on the computer yet
+  if(!all(required_libraries %in% pkgs$Package)){
+    missing_packages = required_libraries[ !required_libraries %in% pkgs$Package ]
+    if(args[length(args)] == "-i"){
+      options(repos = c(CRAN = 'https://cran.rstudio.com'))
+      install.packages(missing_packages)
+      checkForLibraries(missing_packages, retry-1)
+      return()
+    }
+    stop( paste("The following packages need to be installed on your computer in order to run MIST:\n"), paste('\t',missing_packages,'\n', sep=""), call.=FALSE ) 
+    
+  }else{
+    cat(">> All required R libraries accounted for.\n")
+  }
+}
+
+# check for all packages reqiured
+required_libraries = c('yaml','getopt','optparse','reshape2','compiler','stats','grDevices','graphics','pheatmap','RColorBrewer','ggplot2','gridExtra','MESS')
+checkForLibraries(required_libraries)
+
 cat(">> LOADING DEPENDENCIES...\n")
 suppressMessages(library(getopt))
 suppressMessages(library(yaml))
@@ -8,6 +34,7 @@ suppressMessages(library(yaml))
 ## MIST MAIN FILE #######
 
 spec = matrix(c(
+  'install', 'i', 0, "character", "install dependencies",
   'verbose', 'v', 2, "integer", "",
   'help'   , 'h', 0, "logical", "available arguments (this screen)",
   'config'  , 'c', 1, "character", "configuration file in YAML format"),
@@ -25,7 +52,6 @@ if ( !is.null(opt$help) ) {
 PIPELINE=T
 
 # set source directory
-args <- commandArgs(trailingOnly = F) 
 scriptPath <- normalizePath(dirname(sub("^--file=", "", args[grep("^--file=", args)])))  # get the path to where main.R is located
 
 ## load all externeal files
@@ -33,23 +59,6 @@ source(paste(scriptPath,"/src/preprocess.R",sep=""))
 source(paste(scriptPath,"/src/qc.R",sep=""))
 source(paste(scriptPath,"/src/mist.R",sep=""))
 source(paste(scriptPath,'/src/training.R',sep=""))
-
-# check if libraries are installed
-checkForLibraries <- function(required_libraries){
-  pkgs = data.frame(installed.packages(), stringsAsFactors=F)
-  #if the packages haven't been installed on the computer yet
-  if(!all(required_libraries %in% pkgs$Package)){
-    missing_packages = required_libraries[ !required_libraries %in% pkgs$Package ]
-    stop( paste("The following packages need to be installed on your computer in order to run MIST:\n"), paste('\t',missing_packages,'\n', sep=""), call.=FALSE ) 
-    
-  }else{
-    cat(">> All required R libraries accounted for.\n")
-  }
-}
-
-# check for all packages reqiured
-required_libraries = c('yaml','getopt','optparse','reshape2','compiler','stats','grDevices','graphics','pheatmap','RColorBrewer','ggplot2','gridExtra','MESS')
-checkForLibraries(required_libraries)
 
 # some qc to make sure config file exists and is well formatted
 getConfig <- function(config_file){
