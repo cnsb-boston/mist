@@ -48,6 +48,10 @@ if ( !is.null(opt$help) ) {
   cat(getopt(spec, usage=TRUE));
   q(status=1);
 }
+#install and quit silently
+if (is.null(opt$config) &&  !is.null(opt$install) ) {
+  q(status=0);
+}
 
 PIPELINE=T
 
