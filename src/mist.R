@@ -186,7 +186,7 @@ mist.main <- function(matrix_file, weights='fixed', w_R=0.30853, w_A=0.00596, w_
   ip_occurences = mist.getSampleOccurences(m3d_norm, info)
   
   if(nrow(ip_occurences) != nrow(results)){
-    print(" ERROR : INCONSISTENCY BETWEEN SCORE MATRIX AND IP OCCURENCE MATRIX ")
+    #print(" ERROR : INCONSISTENCY BETWEEN SCORE MATRIX AND IP OCCURENCE MATRIX ")
   }
   
   results_with_samples = merge(results, ip_occurences, by=c('Bait','Prey'))
