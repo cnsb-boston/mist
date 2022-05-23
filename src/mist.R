@@ -126,11 +126,11 @@ mist.vectorize <- function(x){
 # Perform PCA analysis AS DONE IN MIST
 mist.doPCA <- function(R,A,S){
 	# vectorize the variables
-	m <- cbind(R=R$Xscore, A=A$Xscore, S=S$Xscore )
-	x <- princomp(m)	# <- shouldn't we mean scale per variable before this step?
+	m <- cbind(R=R$Xscore, A=log2(A$Xscore+1), S=S$Xscore )
+	x <- princomp(scale(m), fix_sign=TRUE)	# <- shouldn't we mean scale per variable before this step?
 	
 	#now do some other stuff??
-	scores <- -x$scores[,1]
+	scores <- x$scores[,1]
 	scores <- (scores - min(scores))/(max(scores)-min(scores))
 	scores <- cbind(R=R, A=A$Xscore, S=S$Xscore, MiST=scores)
 	names(scores) = c("Bait", "Prey", "Reproducibility", "Abundance", "Specificity", "MIST_self")
