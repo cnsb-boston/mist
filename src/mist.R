@@ -133,8 +133,8 @@ mist.doPCA <- function(R,A,S){
 	scores <- x$scores[,1]
 	scores <- (scores - min(scores))/(max(scores)-min(scores))
 	scores <- cbind(R=R, A=A$Xscore, S=S$Xscore, MiST=scores)
-	names(scores) = c("Bait", "Prey", "Reproducibility", "Abundance", "Specificity", "MIST_self")
-	return(scores)
+	names(scores) = c("Bait", "Prey", "Reproducibility", "Abundance", "Specificity", "MIST")
+	return(scores[,c(1,2,4,3,5,6)])
 }
 
 mist.getSampleOccurences = function(m3d_norm, info){
